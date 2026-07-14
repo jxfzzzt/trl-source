@@ -5,8 +5,8 @@ import sys
 os.environ["HF_HOME"] = "/root/autodl-tmp/model_weights"
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 
-sys.path.append("../")
-sys.path.append("../../")
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from datasets import load_dataset
 from peft import LoraConfig
