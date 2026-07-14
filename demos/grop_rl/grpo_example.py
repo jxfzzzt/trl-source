@@ -3,7 +3,6 @@ import os
 import sys
 
 os.environ["HF_HOME"] = "/root/autodl-tmp/model_weights"
-# os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
