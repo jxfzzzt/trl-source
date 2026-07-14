@@ -1,4 +1,13 @@
 # train_grpo.py
+import os
+import sys
+
+os.environ["HF_HOME"] = "/root/autodl-tmp/model_weights"
+os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
+
+sys.path.append("../")
+sys.path.append("../../")
+
 from datasets import load_dataset
 from peft import LoraConfig
 from trl import GRPOConfig, GRPOTrainer
