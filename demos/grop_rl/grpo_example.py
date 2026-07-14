@@ -1,11 +1,11 @@
 # train_grpo.py
 import os
 import sys
-
+from pathlib import Path
 os.environ["HF_HOME"] = "/root/autodl-tmp/model_weights"
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, str(Path(os.path.join(os.path.dirname(__file__), '..')).resolve()))
+sys.path.insert(0, str(Path(os.path.join(os.path.dirname(__file__), '..', '..')).resolve()))
 
 from datasets import load_dataset
 from peft import LoraConfig
