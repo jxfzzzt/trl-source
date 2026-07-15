@@ -25,7 +25,7 @@ training_args = GRPOConfig(
     per_device_eval_batch_size=4,
     # generation_batch_size = per_device_train_batch_size * num_processes * steps_per_generation
     #                       = 4 * 1 * gradient_accumulation_steps(2) = 8，必须能被 num_generations 整除
-    num_generations=8,
+    num_generations=8, # 这个就是rollout数量
     model_init_kwargs={"torch_dtype": torch.bfloat16},
     num_train_epochs=1,
     save_steps=1000,
