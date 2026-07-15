@@ -1069,6 +1069,9 @@ class GRPOTrainer(BaseTrainer):
             # See https://huggingface.co/blog/the_n_implementation_details_of_rlhf_with_ppo#policy-training-implementation-details
             logits = logits / self.temperature
             completion_ids = input_ids_batch[:, -logits_to_keep:]
+            
+            # 这段代码就是取出每个 completion token对应的logits, 然后计算logprobs, 也就是每个token的概率
+            # 这个概率就是softmax之后的概率, 然后取log, 就是logprobs
             logps = selective_log_softmax(logits, completion_ids)  # compute logprobs
             all_logps.append(logps)
 
