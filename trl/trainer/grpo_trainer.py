@@ -1123,7 +1123,12 @@ class GRPOTrainer(BaseTrainer):
             generate_every = self.args.steps_per_generation * self.num_iterations
             if self._step % generate_every == 0 or self._buffered_inputs is None:
                 # self._buffered_inputs=None can occur when resuming from a checkpoint
+                
+                # 在这一步会计算每个 rollout 的分数以及优势估计
+                # 同时还会把 token 进行 encode 成 id
+                # 非常重要的一步, 其实就是数据预处理过程
                 generation_batch = self._generate_and_score_completions(generation_batch)
+                
                 generation_batch = split_pixel_values_by_grid(generation_batch)
                 generation_batch = shuffle_sequence_dict(generation_batch)
                 generation_batches = split_tensor_dict(generation_batch, self.args.steps_per_generation)
