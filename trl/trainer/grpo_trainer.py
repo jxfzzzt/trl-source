@@ -1059,6 +1059,7 @@ class GRPOTrainer(BaseTrainer):
 
             model_inputs["use_cache"] = False  # only used in generation; set False to suppress warnings
 
+            # logits 的第三维是 vocab size
             logits = model(**model_inputs).logits
             # Exclude the last value: it corresponds to the next token pred
             logits = logits[:, :-1, :]  # (B, L-1, H)
@@ -2126,6 +2127,12 @@ class GRPOTrainer(BaseTrainer):
         input_ids = torch.cat([prompt_ids, completion_ids], dim=1)
         attention_mask = torch.cat([prompt_mask, completion_mask], dim=1)
         logits_to_keep = completion_ids.size(1)  # we only need to compute the logits for the completion tokens
+        
+        """
+        tool_mask的内容是 工具执行返回的结果 token 被标记成 0, 模型在工具返回后自己续写的 token 标记成 1.
+        用 completion_mask * tool_mask 做逐元素相乘（逻辑与）得到最终的 mask.
+        也就是说, 只有一个 token, 它是LLM生成的, 并且不是工具执行返回的结果, 这个 token 才会被标记成 1.
+        """
         mask = completion_mask if "tool_mask" not in inputs else completion_mask * inputs["tool_mask"]
 
         # Compute the per_token_logps and the entropy at each position in the completion
