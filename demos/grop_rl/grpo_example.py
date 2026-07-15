@@ -21,11 +21,11 @@ training_args = GRPOConfig(
     logging_steps=10,
     gradient_accumulation_steps=2,
     max_completion_length=128,
-    per_device_train_batch_size=3,
-    per_device_eval_batch_size=3,
+    per_device_train_batch_size=4,
+    per_device_eval_batch_size=4,
     # generation_batch_size = per_device_train_batch_size * num_processes * steps_per_generation
-    #                       = 3 * 1 * gradient_accumulation_steps(2) = 6，必须能被 num_generations 整除
-    num_generations=6,
+    #                       = 4 * 1 * gradient_accumulation_steps(2) = 8，必须能被 num_generations 整除
+    num_generations=8,
     model_init_kwargs={"torch_dtype": torch.bfloat16},
     num_train_epochs=1,
     save_steps=1000,
