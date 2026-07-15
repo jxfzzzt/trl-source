@@ -1587,6 +1587,7 @@ class GRPOTrainer(BaseTrainer):
             prompt_ids, completion_ids, logprobs = output["prompt_ids"], output["completion_ids"], output["logprobs"]
         else:
             prompt_ids, images, multimodal_fields = self._tokenize_prompts(prompts)
+            # 在这一步会使用 LLM rollout 出回答内容
             completion_ids, logprobs, extra_fields = self._generate_single_turn(prompt_ids, images, multimodal_fields)
 
         # Decode completions. It's important to use `parse_response` when possible, because it handles tool calls.
@@ -1715,6 +1716,9 @@ class GRPOTrainer(BaseTrainer):
                 for prompt, image_list in zip(prompts, images, strict=True)
             ]
 
+
+        # 对 prompts 进行 tokenize 以及 encode 过程
+        # 并且使用 LLM rollout出回答内容
         (
             prompt_ids_list,
             completion_ids_list,
@@ -1895,6 +1899,8 @@ class GRPOTrainer(BaseTrainer):
         # Calculate rewards for each reward function. rewards_per_func aggregates rewards across all processes. This is
         # important because rewards will be normalized per group, and completions are distributed. We will later slice
         # rewards_per_func to extract each process's subset.
+        
+        # 计算每个 rollout 内容的 reward
         rewards_per_func = self._calculate_rewards(inputs, prompts, completions, completion_ids_list)
         num_generations = self.num_generations if mode == "train" else self.num_generations_eval
 
@@ -1921,6 +1927,7 @@ class GRPOTrainer(BaseTrainer):
                     f"Invalid value for scale_rewards: {self.scale_rewards}. Must be one of 'batch', 'group', or 'none'."
                 )
 
+            # 计算优势估计
             advantages = rewards - mean_grouped_rewards
             if self.scale_rewards != "none":
                 advantages = advantages / (std_rewards + 1e-4)
@@ -2008,6 +2015,7 @@ class GRPOTrainer(BaseTrainer):
                 nanmax(self.accelerator.gather(max_importance_sampling_ratio)).item()
             )
 
+        # 将处理好的数据封装为 Dict 对象返回
         output = {
             "prompt_ids": prompt_ids,
             "prompt_mask": prompt_mask,
@@ -2040,6 +2048,7 @@ class GRPOTrainer(BaseTrainer):
             output["num_images"] = num_images
         if tool_mask is not None:
             output["tool_mask"] = tool_mask
+
         return output
 
     def compute_liger_loss(self, unwrapped_model, inputs):
