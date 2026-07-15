@@ -2241,9 +2241,15 @@ class GRPOTrainer(BaseTrainer):
 
         if self.beta != 0.0:
             per_token_loss = per_token_loss + self.beta * per_token_kl
-
+        
+        """
+        原始 GRPO 的序列级归一化会让短回答里的 token 获得更大的梯度权重, 可能鼓励模型走捷径、影响长文本的学习.
+        DAPO / cispo 的 token 级归一化对所有 token 平权, 消除了这种长度偏差, 在长思维链 (long CoT) RL 中通常更稳定.
+        """
+        
         mode = "train" if self.model.training else "eval"
         if self.loss_type in ["grpo", "sapo"]:
+            # 序列内先求平均，再序列间求平均
             loss = ((per_token_loss * mask).sum(-1) / mask.sum(-1).clamp(min=1.0)).mean()
             normalizer = self.current_gradient_accumulation_steps if mode == "train" else 1.0  # no accum in eval
             loss = loss / normalizer
@@ -2256,6 +2262,7 @@ class GRPOTrainer(BaseTrainer):
             normalizer = self.current_gradient_accumulation_steps if mode == "train" else 1.0  # no accum in eval
             loss = loss / normalizer
         elif self.loss_type in ["cispo", "dapo"]:
+            # 全局 token 汇总平均
             normalizer = inputs["num_items_in_batch"] / self.accelerator.num_processes
             loss = (per_token_loss * mask).sum() / normalizer
         elif self.loss_type == "luspo":
