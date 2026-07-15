@@ -1080,9 +1080,17 @@ class GRPOTrainer(BaseTrainer):
         entropies = torch.cat(all_entropies, dim=0) if compute_entropy else None
         return logps, entropies
 
+    # 这个函数是每步训练的主入口函数
     def training_step(self, model, inputs, num_items_in_batch):
+        """
+        这里输入的 inputs 是一个 Dict 对象, 里面有2个 Key:
+        分别是 prompt 以及 completion
+        """
         time_before = time.perf_counter()
+        
+        # 返回的output是每个batch size训练后的loss值
         output = super().training_step(model, inputs, num_items_in_batch)
+        
         self._step += 1
         time_after = time.perf_counter()
         self._current_train_step_time += time_after - time_before
@@ -2072,8 +2080,14 @@ class GRPOTrainer(BaseTrainer):
         normalizer = self.current_gradient_accumulation_steps if mode == "train" else 1.0  # no accum in eval
         return loss / normalizer
 
+    # GRPO 算法计算 loss 的函数
     @profiling_decorator
     def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
+        """
+            这里传入的 inputs 是一个 Dict 类型数据, 里面的 key 主要包括:
+            prompt_ids, prompt_mask, completion_ids, completion_mask, advantages.
+            在VeRL中, 这个 inputs 使用 TensorDict 进行了封装.
+        """
         if return_outputs:
             raise ValueError("The GRPOTrainer does not support returning outputs")
         if self.use_liger_kernel:
