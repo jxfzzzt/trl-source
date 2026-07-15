@@ -2,6 +2,8 @@
 import os
 import sys
 from pathlib import Path
+
+# export HF_HOME=/root/autodl-tmp/model_weights
 os.environ["HF_HOME"] = "/root/autodl-tmp/model_weights"
 
 sys.path.insert(0, str(Path(os.path.join(os.path.dirname(__file__), '..')).resolve()))
