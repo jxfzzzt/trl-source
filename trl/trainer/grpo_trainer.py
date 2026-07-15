@@ -1906,6 +1906,9 @@ class GRPOTrainer(BaseTrainer):
 
         if self.multi_objective_aggregation == "sum_then_normalize":
             # Apply weights to each reward function's output and sum
+            
+            # 对每个 reward func 打的分数进行加权求和
+            # nansum 函数的作用就是防止打的分数出现 nan, 该函数会直接将 nan 视为0进行求和
             rewards = (rewards_per_func * self.reward_weights.to(device).unsqueeze(0)).nansum(dim=1)
             mean_grouped_rewards = rewards.view(-1, num_generations).mean(dim=1)
             mean_grouped_rewards = mean_grouped_rewards.repeat_interleave(num_generations, dim=0)
