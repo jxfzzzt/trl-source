@@ -1171,6 +1171,9 @@ class GRPOTrainer(BaseTrainer):
                         text=texts, return_tensors="pt", padding=True, padding_side="right", add_special_tokens=False
                     )
                     reward_inputs = super()._prepare_inputs(reward_inputs)
+                    
+                    # reward model 输出的第 0 号位置的 logits 就是 reward 值
+                    # 这个是在 reward model训练的时候就学习到的
                     with torch.inference_mode():
                         rewards_per_func[:, i] = reward_func(**reward_inputs).logits[:, 0]  # Shape (B*G,)
             elif asyncio.iscoroutinefunction(reward_func):  # Separate async reward funcs to run them in parallel later

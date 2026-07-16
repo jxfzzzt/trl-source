@@ -1153,8 +1153,14 @@ class DPOTrainer(BaseTrainer):
             if key in inputs:
                 model_kwargs[key] = inputs[key]
 
+        # 这里是进行 forward 操作，也就是预测下一个 token
+        # 使用了 teacher-forcing技术
         outputs = model(**model_kwargs)
+
+        # 这里把下标为 -1 的去除, 是因为进行的预测下一个 token 的任务
         shift_logits = outputs.logits[..., :-1, :].contiguous()
+        # 这里取 label 需要从下标为 1 开始取, 因为预测的是下一个 token
+        # 所以 label 需要从第二个 token 开始取
         shift_labels = input_ids[..., 1:].contiguous()
         shift_completion_mask = completion_mask[..., 1:].contiguous()
         per_token_logps = selective_log_softmax(shift_logits, shift_labels)
@@ -1186,6 +1192,8 @@ class DPOTrainer(BaseTrainer):
                     # - New adapter: disabling adapters yields the base model.
                     # - Re-training an existing adapter: an initial copy is loaded under the name "ref".
                     model = self.accelerator.unwrap_model(model)
+                    
+                    # 这里是开始计算 ref model 的 logits
                     with use_adapter(model, adapter_name="ref" if "ref" in model.peft_config else None):
                         ref_outputs = self.model(**model_kwargs)
                 else:
@@ -1242,6 +1250,7 @@ class DPOTrainer(BaseTrainer):
         loss = 0.0
         for loss_type, loss_weight in zip(self.loss_types, self.loss_weights, strict=True):
             if loss_type == "sigmoid":
+                # 经典 DPO 算法的 Loss 计算公式
                 per_sequence_loss = -F.logsigmoid(self.beta * delta_score)
 
             elif loss_type == "hinge":
