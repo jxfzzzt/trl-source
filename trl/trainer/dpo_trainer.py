@@ -136,6 +136,8 @@ class DataCollatorForPreference(DataCollatorMixin):
                                 [0, 0, 1, 0, 0],
                                 [0, 0, 0, 1, 0],
                                 [0, 0, 1, 1, 0]])}
+
+    上面的这个例子可以仔细理解，有利于对偏好数据集构建的整体理解
     ```
     """
 
@@ -144,12 +146,19 @@ class DataCollatorForPreference(DataCollatorMixin):
     return_tensors: str = "pt"
 
     def torch_call(self, examples: list[dict[str, Any]]) -> dict[str, Any]:
+        # 先将 prompt_ids 和 chosen_ids 拼接起来
         prompt_chosen_ids = [example["prompt_ids"] + example["chosen_ids"] for example in examples]
+        # 再将 prompt_ids 和 rejected_ids 拼接起来
         prompt_rejected_ids = [example["prompt_ids"] + example["rejected_ids"] for example in examples]
+        # 再分别计算 chosen_ids 和 rejected_ids 的 attention_mask
         chosen_attention_mask = [[1] * len(example["prompt_ids"] + example["chosen_ids"]) for example in examples]
         rejected_attention_mask = [[1] * len(example["prompt_ids"] + example["rejected_ids"]) for example in examples]
+        # 再分别计算 chosen_ids 和 rejected_ids 的 completion_mask
         chosen_mask = [[0] * len(example["prompt_ids"]) + [1] * len(example["chosen_ids"]) for example in examples]
         rejected_mask = [[0] * len(example["prompt_ids"]) + [1] * len(example["rejected_ids"]) for example in examples]
+
+        # 最后将 prompt_chosen_ids 和 prompt_rejected_ids 拼接起来
+        # 这里注意，假设我当前的 batch_size 是 B, 那么得到的 input_ids 的 batch_size 就是 2B
         input_ids = prompt_chosen_ids + prompt_rejected_ids
         attention_mask = chosen_attention_mask + rejected_attention_mask
         completion_mask = chosen_mask + rejected_mask
